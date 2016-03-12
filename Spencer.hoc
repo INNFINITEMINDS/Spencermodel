@@ -90,7 +90,7 @@ forall {
 ndstim = 300
 objref dstim[ndstim]
 
-delay = 0.1
+delay = 0.03
 
 for i = 0, ((ndstim/4)-1) {
     dend[0] dstim[i] = new syn(0.0133*( i + 1 ))
