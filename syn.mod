@@ -2,7 +2,7 @@ TITLE Synaptic conductance for octopus neurons following Sperncer 2012's model
 
 COMMENT
 
-description...
+Note, gmax in micromho
 
 ENDCOMMENT
 
@@ -20,7 +20,7 @@ UNITS {
 
 PARAMETER {
     taur = 0.07 (ms)
-    taud = 0.34(ms)
+    taud = 0.34 (ms)
     
     gmax = 0.002 (uS)
     e_rev = 0.0 (mV)
@@ -43,5 +43,7 @@ BREAKPOINT {
 }
 
 FUNCTION cond(x (ms) ) (uS) {
-    cond = (100/7)*gmax*(taur*taud/(taud-taur)/(1 (ms)))*(exp((-(x-onset))/taud) - exp((-(x-onset))/taur))
+    :cond = gmax*(taur*taud/(taud-taur)/(88 (ms)))*(exp((-(x-onset))/taud) - exp((-(x-onset))/taur))
+    
+    cond = gmax*(exp((-(x-onset))/taud) - exp((-(x-onset))/taur))
 }
