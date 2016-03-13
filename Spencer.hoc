@@ -47,11 +47,11 @@ initial {
     diam = 3
     L = 2
     
-    insert jsrnaf
-    gnac_jsrnaf = 4.2441
+    //insert jsrnaf
+    //gnac_jsrnaf = 4.2441
     
-    //insert nas
-    //gbar_nas = 4.244
+    insert nas
+    gbar_nas = 4.244
     ena = 55
 }
 
@@ -87,37 +87,42 @@ forall {
 }
 // ------------------- DENDRITIC INNERVATION --------------------------- //
 
-ndstim = 300
-objref dstim[ndstim]
+//ndstim = 300
 
-delay = 0.03
+//objref dstim[ndstim]
 
-for i = 0, ((ndstim/4)-1) {
-    dend[0] dstim[i] = new syn(0.0133*( i + 1 ))
-    dstim[i].onset = 250  - delay*i
-}
+//delay = (8/3)/(ndstim/4) // 1/3 of tonotopy (which is 8 ms) is crossed by single octopus neuron
 
-for i = ndstim/4 , ((ndstim/2)-1) {
-    dend[1] dstim[i] = new syn(0.0133*( i - ((ndstim/4)-1) ))
-    dstim[i].onset = 250  - delay*(i - (ndstim/4))
-}
+//for i = 0, ((ndstim/4)-1) {
+  //  dend[0] dstim[i] = new syn((1/(ndstim/4))*( i + 1 ))
+    //dstim[i].onset = 250  - delay*i}
 
-for i = ndstim/2, ((ndstim*3/4)-1) {
-    dend[2] dstim[i] = new syn(0.0133*( i - ((ndstim/2)-1) ))
-    dstim[i].onset = 250  - delay*(i - (ndstim/2))
-}
+//for i = ndstim/4 , ((ndstim/2)-1) {
+  //  dend[1] dstim[i] = new syn((1/(ndstim/4))*( i - ((ndstim/4)-1) ))
+    //dstim[i].onset = 250  - delay*(i - (ndstim/4))}
 
-for i = ndstim*3/4, (ndstim-1) {
-    dend[3] dstim[i] = new syn(0.0133*( i - ((ndstim*3/4)-1) ))
-    dstim[i].onset = 250  - delay*(i - (ndstim*3/4))
-}
+//for i = ndstim/2, ((ndstim*3/4)-1) {
+  //  dend[2] dstim[i] = new syn((1/(ndstim/4))*( i - ((ndstim/2)-1) ))
+    //dstim[i].onset = 250  - delay*(i - (ndstim/2))}
 
+//for i = ndstim*3/4, (ndstim-1) {
+  //  dend[3] dstim[i] = new syn((1/(ndstim/4))*( i - ((ndstim*3/4)-1) ))
+  //dstim[i].onset = 250  - delay*(i - (ndstim*3/4))
+//}    
+  
+  
+  
+  
+  
+ 
+    
+    
 //The function dendstim() takes the activation times of the
 //dstims mimicing real innervation of ocopus cells by ANFs:
 
 proc dendstim() { 
 }
-
+//yep
     
 
 // ------------------- CONNECT THINGS TOGETHER ------------------------- //
@@ -148,12 +153,12 @@ pic.size(0, 500, -70, 20)
 pic.addvar("soma.v(.5)", 3, 1)
 pic.addvar("initial.v(.5)", 2, 1)
 
-//dendritic innervation, dend[1].v = f(space)
+//dendritic innervation
 
 pic1 = new Graph()
 
 addplot(pic1, 0)
-pic1.size(180, 200, -62, -55)
+pic1.size(245, 254, -65, -45)
 pic1.addvar("dend[1].v(.5)", 1, 1)
 pic1.addvar("soma.v(.5)", 3, 1)
 pic1.addvar("initial.v(.5)", 2, 1)
