@@ -4,7 +4,10 @@ COMMENT
 (1)  tau_h(v) = (125*exp( 10.44*(v + 50) / (273.16 + T) )) / (1 + exp( 34.81*(v + 50) / (273.16 + T) ))
 (2)  hinf(v) = 1 / (1 + exp( (v + 66)/7 )).
 
-The first eqn is 'tau1 = ...' in this *.mod by setting (!) celsius = 33 and frac = 1 (!) But no temp correction if celsius = 33...
+The first eqn is 'tau1 = ...' in this *.mod by setting (!) celsius = 33 and frac = 1 (!) But 
+no temp correction if celsius = 33...
+
+McGinley 2012 found in his model hcno.mod behave better with frac = 0.8
 ENDCOMMENT
 
 TITLE h current for Octopus cells of Cochlear Nucleus
@@ -29,7 +32,7 @@ PARAMETER {
 	zeta2   = 3 	(/ms)		
 	a01 = 0.008 
 	a02 = 0.0029
-	frac=1.0
+	frac= 0.8
 
 
 	thinf  = -66 	(mV)		: inact inf slope	
