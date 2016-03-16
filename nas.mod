@@ -13,21 +13,23 @@ UNITS {
 }
 
 PARAMETER {
-    celsius (degC) : for qt = q10^((celsius-22)/10)
+    celsius (degC)
+    v (mV)
     ena = 55 (mV) : from Spencer et al 2012
     gbar = 4.2441 (mho/cm2) : from Spencer et al 2012
-    q10 = 3
-    
-    
 }
+
 ASSIGNED {
-    v (mV)
     ina (mA/cm2)
     g (mho/cm2)
+    
     minf
     hinf
     mtau (ms)
     htau (ms)
+    
+    :qt
+    :qt2
 }
 
 STATE {
@@ -42,33 +44,48 @@ BREAKPOINT {
 }
 
 INITIAL {
-    params(v)
+    rates(v)
     h = hinf
     m = minf
 }
+
 UNITSOFF
-LOCAL qt
+LOCAL qt, qt2
 
 DERIVATIVE states {
-    params(v)
-    m' = qt*(minf-m)/mtau
-    h' = qt*(hinf-h)/htau
+    rates(v)
+    m' = (minf-m)/mtau
+    h' = (hinf-h)/htau
 }
 
 
-PROCEDURE params(v) {
+PROCEDURE rates(v) {
     
     LOCAL hlp
-      
-    qt = q10^((celsius - 22)/10)
+    
+    qt = 3^((celsius - 22)/10)
+    qt2 = 10^((celsius-33)/10)
+    : T corrections as in Rothman 1983:
     
     minf = 1/(1-(1.11*(v+58)/(v+49))*(exp(-(v+49)/3)-1)/(exp((v+58)/20)-1))
-    mtau = 1/(0.4*((v+58)/(exp((v+58)/20)-1)) - 0.36*((v+49)/(exp(-(v+49)/3)-1)))
+    mtau = 1/(0.4*qt*((v+58)/(exp((v+58)/20)-1)) - 0.36*qt*((v+49)/(exp(-(v+49)/3)-1)))
    
-    hlp = 2.4/(1+exp((v+68)/3)) + 0.8/(1+exp(v+61.3))
+    hlp = 2.4*qt/(1+exp((v+68)/3)) + 0.8*qt2/(1+exp(v+61.3))
     
-    hinf = hlp/(hlp + 3.6/(1+exp(-(v+21)/10)))
-    htau = 1/(hlp + 3.6/(1+exp(-(v+21)/10)))
+    hinf = hlp/(hlp + 3.6*qt/(1+exp(-(v+21)/10)))
+    htau = 1/(hlp + 3.6*qt/(1+exp(-(v+21)/10)))
+    
+    : Without qt2 corrections. qt multiplies derivatives
+    
+    :minf = 1/(1-(1.11*(v+58)/(v+49))*(exp(-(v+49)/3)-1)/(exp((v+58)/20)-1))
+    :mtau = 1/(0.4*((v+58)/(exp((v+58)/20)-1)) - 0.36*((v+49)/(exp(-(v+49)/3)-1)))
+    
+    :hlp = 2.4/(1+exp((v+68)/3)) + 0.8/(1+exp(v+61.3))
+    
+    :hinf = hlp/(hlp + 3.6/(1+exp(-(v+21)/10)))
+    :htau = 1/(hlp + 3.6/(1+exp(-(v+21)/10)))
+    
+    
 }
 UNITSON
 
