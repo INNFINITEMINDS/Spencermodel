@@ -25,8 +25,9 @@ soma {
     nseg = 1
     diam = 25
     L = 25
-    //insert hcno
-    insert hs
+    insert hcno // The frac = 0.8 followind McGinley2012 article.
+    thegna_hcno = 0.0076
+    //insert hs
     
     //insert klt 
     insert kltoz
@@ -45,7 +46,7 @@ axon {
 initial {
     nseg = 1
     diam = 3
-    L = 2
+    L = 10
     
     //insert jsrnaf
     //gnac_jsrnaf = 4.2441
@@ -61,9 +62,10 @@ for i = 0, 3 {
 	diam = 3
 	L = 280
 	
-	//insert hcno
-	insert hs 
-	ghbar_hs = 0.0006
+	insert hcno
+	thegna_hcno = 0.0006
+	//insert hs 
+//	ghbar_hs = 0.0006
 	
 	//insert klt
 	insert kltoz
@@ -85,44 +87,57 @@ forall {
     cm = 0.9 // uF/cm^2
     Ra = 100 // mho*cm
 }
+
+
 // ------------------- DENDRITIC INNERVATION --------------------------- //
 
-//ndstim = 300
+ndst = 80 // Number of synapses on a single dendrite.
+objref dst0[ndst], dst1[ndst], dst2[ndst], dst3[ndst]
 
-//objref dstim[ndstim]
+delay = 0.0036 //ms
 
-//delay = (8/3)/(ndstim/4) // 1/3 of tonotopy (which is 8 ms) is crossed by single octopus neuron
+// Calculated as mean delay time during which an EPSP reaches 
+// the soma (mean with respect to 10 different locations of the
+// synapse along a dendrite was 0.029 ms. Then it was recalculated
+// for 80 synapses: 0.029*(1/8) = 0.0036 ms)
 
-//for i = 0, ((ndstim/4)-1) {
-  //  dend[0] dstim[i] = new syn((1/(ndstim/4))*( i + 1 ))
-    //dstim[i].onset = 250  - delay*i}
+// In cats total travelling wave delay is 8 ms. The number of ANFs
+// innervating an octopus cell is unknown for me yet.
+// Delay for a single synapse can be assessed roughly:
+// (8/3)/80 = 0.033 ms, 10 times delay variable (1/3 of tonotopy is crossed by a single octopus neuron)
+// In mice: (1.6/3)/80 = 0.0067 -- 2 times.
 
-//for i = ndstim/4 , ((ndstim/2)-1) {
-  //  dend[1] dstim[i] = new syn((1/(ndstim/4))*( i - ((ndstim/4)-1) ))
-    //dstim[i].onset = 250  - delay*(i - (ndstim/4))}
+for i = 0, (ndst-1) {
+    dend[0] dst0[i] = new syn(( 1/ndst )*( i + 1 )) //NOTE, dend(1) is distal for the soma, dend(0) -- proximal!
+    dst0[i].onset = 300  - delay*i
+}
 
-//for i = ndstim/2, ((ndstim*3/4)-1) {
-  //  dend[2] dstim[i] = new syn((1/(ndstim/4))*( i - ((ndstim/2)-1) ))
-    //dstim[i].onset = 250  - delay*(i - (ndstim/2))}
+for i = 0, (ndst-1) {
+    dend[1] dst1[i] = new syn(( 1/ndst )*( i + 1 ))
+    dst1[i].onset = 300  - delay*i
+}
 
-//for i = ndstim*3/4, (ndstim-1) {
-  //  dend[3] dstim[i] = new syn((1/(ndstim/4))*( i - ((ndstim*3/4)-1) ))
-  //dstim[i].onset = 250  - delay*(i - (ndstim*3/4))
-//}    
-  
-  
-  
-  
-  
- 
-    
-    
+for i = 0, (ndst-1) {
+    dend[2] dst2[i] = new syn(( 1/ndst )*( i + 1 ))
+    dst2[i].onset = 300  - delay*i
+}
+
+for i = 0, (ndst-1) {
+    dend[3] dst3[i] = new syn(( 1/ndst )*( i + 1 ))
+    dst3[i].onset = 300  - delay*i
+}    
+
+
+
+//Creates dendritic input. Change ndst and delay
+proc dendfire() { 
+}
 //The function dendstim() takes the activation times of the
 //dstims mimicing real innervation of ocopus cells by ANFs:
 
 proc dendstim() { 
 }
-//yep
+//yep.Not ready yet
     
 
 // ------------------- CONNECT THINGS TOGETHER ------------------------- //
@@ -153,7 +168,7 @@ pic.size(0, 500, -70, 20)
 pic.addvar("soma.v(.5)", 3, 1)
 pic.addvar("initial.v(.5)", 2, 1)
 
-//dendritic innervation
+//dendritic innervation v(t)
 
 pic1 = new Graph()
 
@@ -174,6 +189,7 @@ for i = 0, 1 { soma st[i] = new IClamp(.5) }
 
 soma stm = new IClamp(.5)
 
+// 1. Creates a train of 5 current pulses
 proc stimtrain() { local amp, dur, interval,  del
     amp = $1 // current pulses' amplitude
     dur = $2 // current pulses' duration
@@ -192,6 +208,7 @@ proc stimtrain() { local amp, dur, interval,  del
     run()
 }
 
+// 2. Creates double current pulse
 proc stairs() { local amp1, amp2, dur1, dur2, interval, del  
     // current steps 1/2 superimposed
     amp1 = $1
@@ -216,6 +233,7 @@ proc stairs() { local amp1, amp2, dur1, dur2, interval, del
     run()
 }
 
+// 3. Creates a single current pulse
 proc stm1() { local amp, dur, del
     amp = $1
     dur = $2
