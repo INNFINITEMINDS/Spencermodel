@@ -1,5 +1,6 @@
 # Takes the name of the file with a current values in all 20 segments and time. Returns the total 
 # number of unit charges that cross the membrane
+
 def func( str ):
     global f
     q=0
