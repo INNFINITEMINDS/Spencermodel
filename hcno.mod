@@ -7,7 +7,7 @@ COMMENT
 The first eqn is 'tau1 = ...' in this *.mod by setting (!) celsius = 33 and frac = 1 (!) But 
 no temp correction if celsius = 33...
 
-McGinley 2012 found in his model hcno.mod behave better with frac = 0.8
+McGinley 2012 found in his model that hcno.mod behave better with frac = 0.8
 ENDCOMMENT
 
 TITLE h current for Octopus cells of Cochlear Nucleus
@@ -17,12 +17,12 @@ TITLE h current for Octopus cells of Cochlear Nucleus
 NEURON {
 	SUFFIX hcno
 	NONSPECIFIC_CURRENT i
-	RANGE  gbar
+	RANGE  gbar, eh
 	GLOBAL hinf, tau1,tau2
 }
 
 PARAMETER {
-	gbar = 0.0005   	(mho/cm2)	
+	gbar  (mho/cm2)	
 								
 	vhalf1  = -50	(mV)		: v 1/2 for forward
 	vhalf2  = -84 	(mV)		: v 1/2 for backward	
@@ -40,7 +40,7 @@ PARAMETER {
 
 	q10=4.5				: from Magee (1998)
 
-	eh		(mV)            : must be explicitly def. in hoc
+	eh = -38		(mV)            : must be explicitly def. in hoc
 	celsius
 	v 		(mV)
 }
