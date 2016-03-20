@@ -9,7 +9,7 @@ UNITS {
 NEURON {    
     SUFFIX khtoz
     USEION k READ ek WRITE ik
-    RANGE gbar, g, ik
+    RANGE gbar, g, ik, ek
     GLOBAL ninf, pinf, ntau, ptau
 }
 

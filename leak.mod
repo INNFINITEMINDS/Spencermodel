@@ -1,4 +1,4 @@
-TITLE passive  (leak) membrane channel
+TITLE passive (leak) membrane channel
 
 UNITS {
 	(mV) = (millivolt)
@@ -13,7 +13,7 @@ NEURON {
 
 PARAMETER {
 	v (mV)
-	g = .002	(mho/cm2)
+	g = 0.002	(mho/cm2)
 	erev = -62	(mV)
 }
 

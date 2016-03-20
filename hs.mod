@@ -15,10 +15,10 @@ NEURON {
 
 PARAMETER {
     celsius (degC)
-    treference = 22 (degC) : They say, 22 degC
-    eh = -38(mV)
-    ghbar = 0.0076 (mho/cm2) : for soma. For dends set gbar_hs = 0.0006
-    q10 = 4.5
+    treference = 33 (degC) : Spencer says, 33 degC for h-current (as in original  Oertel's code)
+    eh = -38 (mV)
+    ghbar = 0.0076 (mho/cm2) : For soma. For dends set ghbar_hs = 0.0006
+    q10 = 4.5 : Other currents are corrected in temperature with q10 = 3 
 }
 
 STATE {
@@ -51,7 +51,6 @@ DERIVATIVE states {
     h' = qt*(hinf - h)/htau
 }
 
-:LOCAL qt
 
 PROCEDURE setrates(v) {: computes minf, hinf, mtau, htau at current v
     qt = q10^((celsius - treference)/10.0)

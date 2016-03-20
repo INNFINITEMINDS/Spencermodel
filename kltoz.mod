@@ -17,7 +17,7 @@ PARAMETER {
     
     v (mV)
     ek = -70 (mV)
-    gbar =  0.0407 (mho/cm2)
+    gbar =  0.0407 (mho/cm2) : For soma (Spencer 2012) Dends need 0.0027
     
     zss = 0.5
     q10 = 3

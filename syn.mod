@@ -42,8 +42,14 @@ BREAKPOINT {
     }
 }
 
-FUNCTION cond(x (ms) ) (uS) {
-    :cond = gmax*(taur*taud/(taud-taur)/(88 (ms)))*(exp((-(x-onset))/taud) - exp((-(x-onset))/taur))
+FUNCTION cond(t (ms) ) (uS) {
+   : LOCAL tmax, norm
     
-    cond = gmax*(exp((-(x-onset))/taud) - exp((-(x-onset))/taur))
+    :tmax = (taud*taur/(taud - taur))*log(taud/taur)
+    :norm = (exp((-(0.13931-onset))/taud) - exp((-(0.13931-onset))/taur))
+    
+    cond = gmax*(1/0.5272)*(exp((-(t-onset))/taud) - exp((-(t-onset))/taur))
+    : 0.5272 is the max cond(t) (or cond(tmax))
+    :cond = gmax*(1/norm)*(exp((-(t-onset))/taud) - exp((-(t-onset))/taur))
 }
+
