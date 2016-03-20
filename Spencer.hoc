@@ -25,15 +25,15 @@ soma {
     nseg = 1
     diam = 25
     L = 25
-    insert hcno // The frac = 0.8 followind McGinley2012 article.
-    thegna_hcno = 0.0076
-    //insert hs
     
-    //insert klt 
     insert kltoz
-    
-    //insert kht
     insert khtoz
+    insert hcno // The frac = 0.8 followind McGinley2012 article.
+    insert nas 
+    
+    gbar_nas = 0 
+    gbar_hcno = 0.0076
+    
     ek = -70
 }
 
@@ -41,6 +41,15 @@ axon {
     nseg = 1
     diam = 3
     L = 30
+    insert kltoz
+    insert khtoz
+    insert hcno 
+    insert nas 
+    
+    gbar_kltoz = 0
+    gbar_khtoz = 0
+    gbar_hcno = 0
+    gbar_nas  = 0
 }
 
 initial {
@@ -48,44 +57,52 @@ initial {
     diam = 3
     L = 10
     
-    //insert jsrnaf
-    //gnac_jsrnaf = 4.2441
+    insert kltoz
+    insert khtoz
+    insert hcno 
+    insert nas 
     
-    insert nas
-    gbar_nas = 4.244
+    gbar_kltoz = 0
+    gbar_khtoz = 0
+    gbar_hcno = 0
+    gbar_nas  = 4.2441
+    
     ena = 55
 }
-
+Nseg = 20
 for i = 0, 3 {
     dend[i] {
-	nseg = 20
+	nseg = Nseg
 	diam = 3
 	L = 280
 	
-	insert hcno
-	thegna_hcno = 0.0006
-	//insert hs 
-//	ghbar_hs = 0.0006
-	
-	//insert klt
 	insert kltoz
-	ek = -70 
+	insert khtoz
+	insert hcno 
+	insert nas 
+	
+	gbar_khtoz = 0
+	gbar_nas  = 0
+	gbar_hcno = 0.0006
 	gbar_kltoz = 0.0027 // from Spencer et al., 2012, Table 3
 	
-	//THERE IS NO KHT CONDUCTANCE IN DENDS IN Spencer et al 2012//
+	ek = -70 
 	
+	//THERE IS NO KHT CONDUCTANCE IN DENDS IN Spencer et al 2012//
     }
 }
 
 forall {
     insert leak
+    cm = 0.9 // uF/cm^2
+    Ra = 100 // mho*cm
+    
+    ek = -70
+    ena = 55
+    
     //e_pas = -62 // mV. Golding et al. 1999; Bal & Oertel 2001
     //g_pas = 0.002 // S/cm^2. Calculated from time constant and cell capasitance
     // values from Bal & Oertel, 2000; Bal & Baydas 2009
-    
-    //insert hh
-    cm = 0.9 // uF/cm^2
-    Ra = 100 // mho*cm
 }
 
 
@@ -153,13 +170,13 @@ for i = 0, 3 {
 
 tstop = 500
 celsius = 37
-
+finitialize(-60)
 
 // ------------------ PICTURES ---------------------------------------- //
 
-// soma & initial v(t)
+// 1. Soma & initial v(t)
 
-objref pic, pic1
+objref pic, pic1, pic2
 
 pic = new Graph()
 
@@ -168,7 +185,7 @@ pic.size(0, 500, -70, 20)
 pic.addvar("soma.v(.5)", 3, 1)
 pic.addvar("initial.v(.5)", 2, 1)
 
-//dendritic innervation v(t)
+// 2. Dendritic innervation v(t)
 
 pic1 = new Graph()
 
@@ -178,6 +195,19 @@ pic1.addvar("dend[1].v(.5)", 1, 1)
 pic1.addvar("soma.v(.5)", 3, 1)
 pic1.addvar("initial.v(.5)", 2, 1)
 
+// 3. Currents in dend[0](.5), soma i(t)
+
+pic2 = new Graph()
+
+addplot(pic2, 0)
+pic2.size(0, 1000, -0.02, 0.04)
+
+pic2.addvar("dend[0].ik_kltoz(.5)", 1, 1)
+pic2.addvar("dend[0].i_hcno(.5)", 3, 1)
+pic2.addvar("dend[0].i_leak(.5)", 2, 1)
+pic2.addvar("soma.ik_kltoz(.5)", 5, 6)
+pic2.addvar("soma.i_hcno(.5)", 6, 6)
+pic2.addvar("soma.i_leak(.5)", 7, 6)
 
 // ------------------ SOMATIC INNERVATION: stimtrain, stairs, stm1 ----- //
 
@@ -248,3 +278,123 @@ proc stm1() { local amp, dur, del
     for i =0, 4 { stim[i].amp = 0 }
     run()
 }
+
+// Culculates total Iklt current in 4 dends in nA
+func calc_cur_klt() { 
+    Isumklt =0
+    for n =0,3{
+	for l = 0,dend[n].nseg-1 {
+	    x = (l+0.5)/dend[n].nseg
+	    i = dend[n].ik_kltoz(x)
+	    
+	    Isumklt += i
+	}
+    }
+    Isumklt *= 3.1415*dend[0].diam*dend[0].L*1e-8/dend[0].nseg
+    return Isumklt*1e6
+}
+
+// Culculates total Ih current in 4 dends in nA
+func calc_cur_h() {
+    Isumh =0
+    for n =0,3{
+	for l = 0,dend[n].nseg-1 {
+	    x = (l+0.5)/dend[n].nseg
+	    i = dend[n].i_hcno(x)
+	    //print x, i, Isumh
+	    Isumh += i
+	}
+    }
+    Isumh *= 3.1415*dend[0].diam*dend[0].L*1e-8/dend[0].nseg
+    return Isumh*1e6
+}
+
+// Culculates total Ileak current in 4 dends in nA
+func calc_cur_leak() {
+    Isumle=0
+    for n =0,3{
+	for l = 0,dend[n].nseg-1 {
+	    x = (l+0.5)/dend[n].nseg
+	    i = dend[n].i_leak(x)
+	    
+	    Isumle += i
+	}
+    }
+    Isumle *= 3.1415*dend[0].diam*dend[0].L*1e-8/dend[0].nseg
+    return Isumle*1e6
+}
+
+
+
+// For saving iklt currents of all dend[0] segments into a file
+/*
+objref rect, reci[20], reci1[20], reci2[20], recn[20], recn1[20], recn2[20]
+
+for i = 0, 19 {
+    rect = new Vector()
+    reci[i] = new Vector()
+    reci1[i] = new Vector()
+    reci2[i] = new Vector()
+    
+    rect.record(&t)
+    reci[i].record(&dend[0].ik_kltoz(0.049*(i+1)))
+    reci1[i].record(&dend[0].i_hcno(0.049*(i+1)))
+    reci2[i].record(&dend[0].i_leak(0.049*(i+1)))
+}
+run()
+
+for i = 0, 19 {
+    recn[i] = new Vector(rect.size())
+    recn1[i] = new Vector(rect.size())
+    recn2[i] = new Vector(rect.size())
+    
+    for j = 0,rect.size()-1 {
+	recn[i].x[j] = reci[i].x[j] - dend[0].ik_kltoz(0.049*(i+1))
+	recn1[i].x[j] = reci1[i].x[j] - dend[0].i_hcno(0.049*(i+1))
+	recn2[i].x[j] = reci2[i].x[j] - dend[0].i_leak(0.049*(i+1))
+    }
+}
+//получили значения токов, нормированные на стационарные значения. для каждого сегмента. теперь надо записать их в файл!
+//Сначала запишем их все в матрицу, а потом в один файл. Потом интегрировать
+
+objref m[3], f[3]
+
+for i = 0, 2 {
+    m[i] = new Matrix()
+    m[i].resize(rect.size(), 21)
+    m[i].setcol(0, rect)
+    
+    f[i] = new File()
+}
+
+for j = 0, 19 {
+    m[0].setcol((j+1), recn[j])
+    m[1].setcol((j+1), recn1[j])
+    m[2].setcol((j+1), recn2[j])
+}
+
+// Matrix done. Now write segments' currents into a file 
+
+
+f[0].wopen("dend_Iklt(t)_norm.dat")
+f[1].wopen("dend_Ih(t)_norm.dat")
+f[2].wopen("dend_Ileak(t)_norm.dat")
+
+for i = 0,2 {
+    f[i].printf("t, dend location: 0 -> 1, 20 segments\n")
+    m[i].fprint(f[i], " %03e")
+    f[i].close()
+}
+*/
+
+// Записали, получили 3 файла с токами(t) (нормированными на равновесное значение). Теперь надо найти те точки, 
+// в которых происходит стимуляция и релаксация и еще там. по rect используя where(rect.x[i], ">", onset, но
+// "<" какое-то время релаксации, равновесинизации токов). Получить этот интервал значений. По нему
+// интегрировать каждый ток в каждом сегменте (60 интегралов). Сложить интегралы для каждого тока. Получится 
+//суммарный "extra" ток, протекающий через мембрану при иннервации дендритов. Посчитать суммарный ток каждого 
+// иона. Отсюда посчитать энергит. затраты. Это будет Энергия, требуемая на иннервацию дендритов на одно событие
+//(одна иннервация, один sweep без шумов)
+
+//Проблемы: расчет составляющих Na+ и K+ в токе Ih
+//where usage
+//интегрирование 60 кривых в питоне
