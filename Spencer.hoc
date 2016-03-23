@@ -85,7 +85,7 @@ for i = 0, 3 {
 	gbar_nas  = 0
 	gbar_hcno = 0.0006
 	gbar_kltoz = 0.0027 // from Spencer et al., 2012, Table 3
-	
+
 	ek = -70 
 	
 	//THERE IS NO KHT CONDUCTANCE IN DENDS IN Spencer et al 2012//
@@ -125,37 +125,38 @@ delay = 0.0036 //ms
 // In mice: (1.6/3)/80 = 0.0067 -- 2 times.
 
 for i = 0, (ndst-1) {
-    dend[0] dst0[i] = new syn(( 1/ndst )*( i + 1 )) //NOTE, dend(1) is distal for the soma, dend(0) -- proximal!
+    dend[0] dst0[i] = new syn(( 1/ndst )*( i + 1 )) 
     dst0[i].onset = 300  - delay*i
-}
-
-for i = 0, (ndst-1) {
+    
     dend[1] dst1[i] = new syn(( 1/ndst )*( i + 1 ))
     dst1[i].onset = 300  - delay*i
-}
-
-for i = 0, (ndst-1) {
+    
     dend[2] dst2[i] = new syn(( 1/ndst )*( i + 1 ))
     dst2[i].onset = 300  - delay*i
-}
-
-for i = 0, (ndst-1) {
+    
     dend[3] dst3[i] = new syn(( 1/ndst )*( i + 1 ))
     dst3[i].onset = 300  - delay*i
-}    
-
-
-
-//Creates dendritic input. Change ndst and delay
-proc dendfire() { 
 }
-//The function dendstim() takes the activation times of the
-//dstims mimicing real innervation of ocopus cells by ANFs:
 
-proc dendstim() { 
-}
-//yep.Not ready yet
+proc dendfire() {
     
+    for i = 0, (ndst-1) {
+	dst0[i].gmax = 0.002
+	dst1[i].gmax = 0.002
+	dst2[i].gmax = 0.002
+	dst3[i].gmax = 0.002
+    }
+    run()  
+    
+    for i = 0, (ndst-1) {
+	dst0[i].gmax = 0
+	dst1[i].gmax = 0
+	dst2[i].gmax = 0
+	dst3[i].gmax = 0
+    }
+
+}
+
 
 // ------------------- CONNECT THINGS TOGETHER ------------------------- //
  
@@ -232,10 +233,9 @@ proc stimtrain() { local amp, dur, interval,  del
 	stim[i].amp = amp
 	stim[i].del = del + i*interval
     }
-    
-    stm.amp = 0
-    for i =0, 1 { st[i].amp = 0 }
     run()
+    //stimulate once and turn off!
+    for i = 0, 4 { stim[i].amp = 0 }
 }
 
 // 2. Creates double current pulse
@@ -257,10 +257,11 @@ proc stairs() { local amp1, amp2, dur1, dur2, interval, del
     st[1].dur = dur2
     st[1].del = del + interval
     
-    stm.amp = 0
-    for i =0, 4 { stim[i].amp = 0 }
-
     run()
+    
+    //stimulate once and turn off!
+    st[0].amp = 0
+    st[1].amp = 0
 }
 
 // 3. Creates a single current pulse
@@ -274,11 +275,15 @@ proc stm1() { local amp, dur, del
     stm.dur = dur
     stm.del = del
     
-    for i =0, 1 { st[i].amp = 0 }
-    for i =0, 4 { stim[i].amp = 0 }
     run()
+    
+    //stimulate once and turn off! 
+    stm.amp = 0
 }
 
+
+
+/*
 // Culculates total Iklt current in 4 dends in nA
 func calc_cur_klt() { 
     Isumklt =0
@@ -327,7 +332,7 @@ func calc_cur_leak() {
 
 
 // For saving iklt currents of all dend[0] segments into a file
-/*
+
 objref rect, reci[20], reci1[20], reci2[20], recn[20], recn1[20], recn2[20]
 
 for i = 0, 19 {
