@@ -1,5 +1,6 @@
 # Takes the name of the file with a current values in all 20 segments and time. Returns the total 
 # number of unit charges that cross the membrane
+
 def func( str ):
     global f
     q=0
@@ -41,5 +42,10 @@ def func( str ):
     
     # qabs is the number of unit charges per dend_surface_area, S, per 4 dends. Перевод на 1 сек: *1000/150
     
+<<<<<<< HEAD
     qabs = (4*q*1e-3*S/e)/0.15
     print ('***\n The total number of extra unit_charges \n resulting from dendritic activation per second is*\n ---> %.3e' % (qabs))
+=======
+    qabs = 4*q*1e-3*S/e
+    print ('***\n The total number of extra unit_charges \n resulting from dendritic activation is*\n ---> %.3e' % (qabs))
+>>>>>>> 588d2b906d8ffbac2b072feea87b814753670c06
