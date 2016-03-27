@@ -18,8 +18,8 @@
 // Their model includes values of parameters that mostly reflect experimentaly
 // observed in cat
 
-
-create soma, initial, axon, dend[4]
+Ndend = 4
+create soma, initial, axon, dend[Ndend]
 
 soma {
     nseg = 1
@@ -31,10 +31,10 @@ soma {
     insert hcno // The frac = 0.8 followind McGinley2012 article.
     insert nas 
     
-    gbar_nas = 0 
+    gbar_kltoz = 0.0407
+    gbar_khtoz = 0.0061
     gbar_hcno = 0.0076
-    
-    ek = -70
+    gbar_nas  = 0
 }
 
 axon {
@@ -66,13 +66,12 @@ initial {
     gbar_khtoz = 0
     gbar_hcno = 0
     gbar_nas  = 4.2441
-    
-    ena = 55
 }
-Nseg = 20
+
+dend_nseg = 80
 for i = 0, 3 {
     dend[i] {
-	nseg = Nseg
+	nseg = dend_nseg
 	diam = 3
 	L = 280
 	
@@ -85,8 +84,6 @@ for i = 0, 3 {
 	gbar_nas  = 0
 	gbar_hcno = 0.0006
 	gbar_kltoz = 0.0027 // from Spencer et al., 2012, Table 3
-
-	ek = -70 
 	
 	//THERE IS NO KHT CONDUCTANCE IN DENDS IN Spencer et al 2012//
     }
@@ -98,16 +95,68 @@ forall {
     Ra = 100 // mho*cm
     
     ek = -70
-    ena = 55
+    ena = 55    
+}
+
+
+//*TEMP* SINGLE SYNAPSE for determine full delay
+/*
+objref s
+dend[1] s = new Exp2Syn(0.5)
+s.tau1 = 70e-3
+s.tau2 = 340e-3
+
+objref afib_s
+afib_s = new NetStim(.5)
+afib_s.interval = 3
+afib_s.start  = 500 
+afib_s.number  = 1
+afib_s.noise  = 0
+objref netcon
+netcon = new NetCon(afib_s, s, 0, 0.5, 2e-3) //2e-3 mS = 2 uS
+*/
+
+// ------------------- DENDRITIC INNERVATION USING NetCon--------------- //
+
+
+
+objref afib // stimulus sourse
+afib = new NetStim(.5)
+afib.interval = 4 // ms
+afib.start = 2000 // ms
+afib.number = 1 // number of spikes
+afib.noise = 0  // no randomness so far
+
+objref synlist
+synlist = new List()
+
+synweight = 2e-3 // 2uS
+
+Nsyn=68 // 68 is critical. 67 synapses do not result in action potential
+
+objref synapses[Nsyn]
+
+fulldelay = 0.29 // ms See, mail 13.03.16 to AB
+
+objref rx
+rx = new Random()
+
+for i = 0,Nsyn-1 {
+    kd = i%Ndend // a dendrite number: 1,2,3 or 4
+    coord = int(i/Ndend)*(Ndend/Nsyn) // a coordinate on a dend
     
-    //e_pas = -62 // mV. Golding et al. 1999; Bal & Oertel 2001
-    //g_pas = 0.002 // S/cm^2. Calculated from time constant and cell capasitance
-    // values from Bal & Oertel, 2000; Bal & Baydas 2009
+    delay = (1-coord)*fulldelay
+    //delay = rx.uniform(0,fulldelay) //randomness do not result in action potential. Also see the shape plot along the model, compare it to ordered one.
+    
+    dend[kd] synapses[i] = new Exp2Syn(coord)
+    synapses[i].tau1 = 70e-3   // rise time, ms
+    synapses[i].tau2 = 340e-3  // decay time, ms
+    synlist.append(new NetCon(afib, synapses[i], 0, delay, synweight))
 }
 
 
 // ------------------- DENDRITIC INNERVATION --------------------------- //
-
+/*
 ndst = 80 // Number of synapses on a single dendrite.
 objref dst0[ndst], dst1[ndst], dst2[ndst], dst3[ndst]
 
@@ -157,7 +206,7 @@ proc dendfire() {
 
 }
 
-
+*/
 // ------------------- CONNECT THINGS TOGETHER ------------------------- //
  
 connect initial(1), axon(0)
@@ -169,7 +218,7 @@ for i = 0, 3 {
 
 
 
-tstop = 500
+
 celsius = 37
 finitialize(-60)
 
@@ -182,12 +231,12 @@ objref pic, pic1, pic2
 pic = new Graph()
 
 addplot(pic, 0)
-pic.size(0, 500, -70, 20)
+pic.size(0, 2000, -70, 20)
 pic.addvar("soma.v(.5)", 3, 1)
 pic.addvar("initial.v(.5)", 2, 1)
 
 // 2. Dendritic innervation v(t)
-
+/*
 pic1 = new Graph()
 
 addplot(pic1, 0)
@@ -197,11 +246,11 @@ pic1.addvar("soma.v(.5)", 3, 1)
 pic1.addvar("initial.v(.5)", 2, 1)
 
 // 3. Currents in dend[0](.5), soma i(t)
-
+*/
 pic2 = new Graph()
 
 addplot(pic2, 0)
-pic2.size(0, 1000, -0.02, 0.04)
+pic2.size(0, 2000, -0.02, 0.04)
 
 pic2.addvar("dend[0].ik_kltoz(.5)", 1, 1)
 pic2.addvar("dend[0].i_hcno(.5)", 3, 1)
@@ -209,6 +258,15 @@ pic2.addvar("dend[0].i_leak(.5)", 2, 1)
 pic2.addvar("soma.ik_kltoz(.5)", 5, 6)
 pic2.addvar("soma.i_hcno(.5)", 6, 6)
 pic2.addvar("soma.i_leak(.5)", 7, 6)
+
+
+// --- Numerics --- // 
+//dt = 0.01
+tstop = 2500
+v_init = -60.6
+cvode_active(1)
+cvode.atol(1e-4)
+
 
 // ------------------ SOMATIC INNERVATION: stimtrain, stairs, stm1 ----- //
 
@@ -284,53 +342,6 @@ proc stm1() { local amp, dur, del
 
 
 /*
-// Culculates total Iklt current in 4 dends in nA
-func calc_cur_klt() { 
-    Isumklt =0
-    for n =0,3{
-	for l = 0,dend[n].nseg-1 {
-	    x = (l+0.5)/dend[n].nseg
-	    i = dend[n].ik_kltoz(x)
-	    
-	    Isumklt += i
-	}
-    }
-    Isumklt *= 3.1415*dend[0].diam*dend[0].L*1e-8/dend[0].nseg
-    return Isumklt*1e6
-}
-
-// Culculates total Ih current in 4 dends in nA
-func calc_cur_h() {
-    Isumh =0
-    for n =0,3{
-	for l = 0,dend[n].nseg-1 {
-	    x = (l+0.5)/dend[n].nseg
-	    i = dend[n].i_hcno(x)
-	    //print x, i, Isumh
-	    Isumh += i
-	}
-    }
-    Isumh *= 3.1415*dend[0].diam*dend[0].L*1e-8/dend[0].nseg
-    return Isumh*1e6
-}
-
-// Culculates total Ileak current in 4 dends in nA
-func calc_cur_leak() {
-    Isumle=0
-    for n =0,3{
-	for l = 0,dend[n].nseg-1 {
-	    x = (l+0.5)/dend[n].nseg
-	    i = dend[n].i_leak(x)
-	    
-	    Isumle += i
-	}
-    }
-    Isumle *= 3.1415*dend[0].diam*dend[0].L*1e-8/dend[0].nseg
-    return Isumle*1e6
-}
-
-
-
 // For saving iklt currents of all dend[0] segments into a file
 
 objref rect, reci[20], reci1[20], reci2[20], recn[20], recn1[20], recn2[20]
